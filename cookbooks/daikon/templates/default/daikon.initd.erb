@@ -1,0 +1,46 @@
+#!/bin/sh -e
+
+### BEGIN INIT INFO
+# Provides:          daikon
+# Required-Start:    $local_fs $remote_fs $network
+# Required-Stop:     $local_fs $remote_fs $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Daikon init script
+# Description:       Daikon connects to radishapp.com
+### END INIT INFO
+
+password="<%= @node[:daikon][:password] %>"
+log_dir="<%= @node[:daikon][:home_dir] %>"
+logfile="${log_dir}/daikon.log"
+pidfile="/var/run/daikon/daikon.pid"
+run_as_user="<%= @node[:daikon][:user] %>"
+sleep_time_during_restart=5
+stop_schedule="QUIT/30/INT/10/KILL/5"
+
+# override above values, or set any other env variables you need
+[ -f /etc/default/daikon ] && . /etc/default/daikon
+
+case "$1" in
+  run-with-log-and-pid)
+    /usr/bin/daikon run -- -k "${password}" >> "${logfile}" 2>&1 &
+    echo $! > ${pidfile}
+    ;;
+  start)
+    start-stop-daemon --start --pidfile ${pidfile} \
+      --chuid ${run_as_user} --chdir ${log_dir} \
+      --startas $0 -- run-with-log-and-pid
+    ;;
+  stop)
+    start-stop-daemon --stop --pidfile ${pidfile} --retry=${stop_schedule}
+    ;;
+  restart)
+    $0 stop
+    sleep ${sleep_time_during_restart}
+    $0 start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
