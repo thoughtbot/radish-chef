@@ -11,7 +11,7 @@ user node[:daikon][:user] do
 end
 
 group node[:daikon][:group] do
-  members ['daikon']
+  members [node[:daikon][:user]]
 end
 
 [

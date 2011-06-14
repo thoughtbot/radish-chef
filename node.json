@@ -1,4 +1,6 @@
 {
-  "run_list": [ "recipe[daikon]" ]
+  "run_list": [ "recipe[daikon]" ],
+  "daikon": {
+    "password": "0123456789abcdef"
+  }
 }
-
