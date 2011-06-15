@@ -13,26 +13,26 @@
 password="<%= @node[:daikon][:password] %>"
 log_dir="<%= @node[:daikon][:home_dir] %>"
 logfile="${log_dir}/daikon.log"
-pidfile="/var/run/daikon/daikon.pid"
+# using non-standard pidfile location, until daikon gem is updated
+pidfile="${log_dir}/daikon.pid"
 run_as_user="<%= @node[:daikon][:user] %>"
 sleep_time_during_restart=5
-stop_schedule="QUIT/30/INT/10/KILL/5"
 
 # override above values, or set any other env variables you need
 [ -f /etc/default/daikon ] && . /etc/default/daikon
 
 case "$1" in
-  run-with-log-and-pid)
+  run-with-log)
+    # need this hack to ensure logfile location, until daikon gem is updated
     /usr/bin/daikon run -- -k "${password}" >> "${logfile}" 2>&1 &
-    echo $! > ${pidfile}
     ;;
   start)
     start-stop-daemon --start --pidfile ${pidfile} \
       --chuid ${run_as_user} --chdir ${log_dir} \
-      --startas $0 -- run-with-log-and-pid
+      --startas $0 -- run-with-log
     ;;
   stop)
-    start-stop-daemon --stop --pidfile ${pidfile} --retry=${stop_schedule}
+    start-stop-daemon --stop --pidfile ${pidfile}
     ;;
   restart)
     $0 stop
