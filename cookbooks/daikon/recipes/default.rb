@@ -26,6 +26,9 @@ end
   end
 end
 
+# HACK: to make chef 0.6 happy
+service "daikon"
+
 case node[:platform]
 when "ubuntu", "debian"
   template "/etc/init/daikon.conf" do
@@ -35,6 +38,7 @@ when "ubuntu", "debian"
     action :create
     backup false
     source "daikon.upstart.erb"
+    notifies :restart, resources(:service => "daikon")
   end
 else
   template "/etc/init.d/daikon" do
@@ -43,7 +47,8 @@ else
     mode 0755
     action :create
     source "daikon.initd.erb"
-    variables :node => node # to support chef 0.6
+    variables :node => node # HACK: to support chef 0.6
+    notifies :restart, resources(:service => "daikon")
   end
 end
 
